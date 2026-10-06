@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Power Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Lexend:wght@400;500;600&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --sea:#0A3B47; --sea2:#0E5566; --card:#FFFDF7; --card2:#F1ECDD; --ink:#16233A; --muted:#5C6878;
+  --gold:#FFC93C; --good:#1E9E62; --goodbg:#D9F5E6; --bad:#E0413E;
+  --t0:#FF5E5B; --t1:#22B8A7; --t2:#FFC93C; --t3:#8E7CFF;
+  --c0:#FF6B5E; --c1:#3C8DFF; --c2:#22B8A7; --c3:#B084FF;
+  --display:"Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --body:"Lexend","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:radial-gradient(1100px 560px at 75% -10%, #1B7C8E 0%, transparent 60%), var(--sea);color:#fff;font-family:var(--body);overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.05}
+sup{font-size:.62em;line-height:0;vertical-align:.75em;margin-left:.04em}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1.05;font-size:.78em;margin:0 .1em}
+.fr>span:first-child{border-bottom:.07em solid currentColor;padding:0 .12em .04em}
+.fr>span:last-child{padding:.04em .12em 0}
+sup .fr{font-size:.9em;vertical-align:middle}
+.qtext .sm{display:block;font-family:var(--body);font-weight:500;font-size:.5em;color:var(--muted);margin-bottom:2px}
+.lines{display:grid;gap:6px;font-size:.78em}
+.lines div{background:var(--card2);border-radius:12px;padding:4px 14px}
+.qv.rev .lines{font-size:.58em;gap:3px}
+.qv.rev:not(.spot) .qtext>div:first-child{font-size:1em}
+.qtext{font-size:clamp(1.8rem,min(4.4vw,8.5vh),4rem)}
+.qv.rev .qtext .ans{font-size:.9em}
+.qv.rev .lines div{padding:2px 12px}
+.lines b{display:inline-block;width:1.4em;color:#0E6E7E}
+.rulecard{background:var(--card2);border-radius:18px;padding:16px 22px;font-size:clamp(1rem,min(2vw,3.4vh),1.7rem);line-height:1.6;color:var(--ink);font-weight:500;width:100%}
+.rulecard h4{margin:0 0 6px;font-family:var(--display);font-size:1.15em;color:#0E6E7E}
+.rulecard b{color:#0E6E7E}
+kbd{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);border-bottom-width:3px;border-radius:7px;padding:1px 8px;font-family:var(--body);font-weight:600;font-size:.85em}
+#app{height:100dvh;display:grid;grid-template-rows:auto 1fr auto;min-height:0}
+
+/* top bar */
+.top{display:flex;align-items:center;gap:14px;padding:8px 18px;min-height:56px}
+.logo{background:#fff;border-radius:10px;padding:4px 10px;display:flex}
+.logo img{height:34px;display:block}
+.brand{font-family:var(--display);font-weight:800;font-size:1.35rem;line-height:1}
+.brand small{display:block;font-family:var(--body);font-weight:500;font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-top:3px}
+.turn{flex:1;text-align:center;font-family:var(--display);font-weight:800;font-size:clamp(1.1rem,2vw,1.8rem)}
+.turn span{padding:4px 18px;border-radius:999px;background:var(--c);color:#16233A;box-shadow:0 4px 0 rgba(0,0,0,.3)}
+.ib{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.28);border-radius:10px;padding:6px 11px;font-weight:600;font-size:.85rem}
+.ib:hover{background:rgba(255,255,255,.22)}
+
+/* board */
+.stage{min-height:0;padding:2px 18px 6px;position:relative;display:grid;grid-template-rows:auto 1fr;gap:8px}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.cat{--c:var(--c0);background:var(--c);color:#16233A;border-radius:16px;padding:6px 10px;text-align:center;box-shadow:0 5px 0 rgba(0,0,0,.28)}
+.cat b{display:block;font-family:var(--display);font-weight:800;font-size:clamp(1.05rem,2vw,1.8rem);line-height:1.05}
+.cat small{display:inline-block;margin-top:3px;background:rgba(0,0,0,.2);color:#fff;border-radius:999px;padding:1px 12px;font-weight:700;font-size:clamp(.7rem,1.1vw,.95rem);letter-spacing:.06em}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(5,minmax(0,1fr));gap:10px;min-height:0}
+.tile{--c:var(--c0);position:relative;border-radius:16px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 38%,#0B2A33),#0B2A33);border:3px solid color-mix(in srgb,var(--c) 70%,transparent);
+  display:grid;place-items:center;overflow:hidden;box-shadow:0 6px 0 rgba(0,0,0,.35);transition:transform .12s, box-shadow .12s;min-height:0}
+.tile:hover:not(.done){transform:translateY(-4px) scale(1.02);box-shadow:0 10px 0 rgba(0,0,0,.35),0 0 24px var(--c)}
+.tile svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);height:68%;width:auto;filter:drop-shadow(0 3px 0 rgba(0,0,0,.35))}
+.tile .pts{font-family:var(--display);font-weight:800;font-size:clamp(1.6rem,min(4.4vw,7.2vh),4rem);color:var(--gold);text-shadow:0 3px 0 rgba(0,0,0,.45);margin-left:30%;line-height:1}
+.tile.done{background:rgba(255,255,255,.06);border-style:dashed;border-color:rgba(255,255,255,.2);box-shadow:none;cursor:default}
+.tile.done svg{opacity:.18}
+.tile .won{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:2px}
+.tile .won b{font-family:var(--display);font-weight:800;font-size:clamp(1.1rem,2.2vw,2rem);padding:2px 18px;border-radius:999px;background:var(--w);color:#16233A}
+.tile .won i{font-style:normal;font-size:clamp(.8rem,1.3vw,1.1rem);opacity:.85}
+
+/* group panels */
+.groups{display:grid;gap:12px;padding:0 18px 12px;grid-auto-flow:column;grid-auto-columns:1fr}
+.grp{--c:var(--t0);background:rgba(255,255,255,.1);border:3px solid color-mix(in srgb,var(--c) 60%,transparent);border-radius:20px;padding:8px 14px;display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 12px;position:relative;overflow:hidden;transition:transform .15s, box-shadow .2s}
+.grp.turn{border-color:#fff;box-shadow:0 0 0 4px var(--c),0 0 36px var(--c);transform:translateY(-4px)}
+.gname{font-family:var(--display);font-weight:800;font-size:clamp(1.2rem,2.2vw,2rem);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gscore{font-family:var(--display);font-weight:800;font-size:clamp(2.2rem,5vw,4.4rem);line-height:1;color:var(--c);filter:brightness(1.15);text-align:right}
+.gscore small{font-size:.28em;color:#fff;opacity:.7;margin-left:4px;font-family:var(--body);font-weight:500}
+.coins{font-size:.95rem;letter-spacing:1px;min-height:1.2em;overflow:hidden;white-space:nowrap}
+.adj{grid-column:1/3;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+.adj button{background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.3);border-radius:10px;padding:5px 0;font-family:var(--display);font-weight:800;font-size:clamp(.9rem,1.5vw,1.35rem);line-height:1.1}
+.adj button:hover{background:var(--c);color:#16233A}
+.adj button.neg:hover{background:var(--bad);color:#fff}
+.pop{position:absolute;right:14px;top:4px;font-family:var(--display);font-weight:800;font-size:2.2rem;animation:pop 1.2s ease-out forwards;pointer-events:none;z-index:3;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+@keyframes pop{0%{transform:translateY(10px) scale(.6);opacity:0}20%{opacity:1;transform:scale(1.2)}100%{transform:translateY(-46px);opacity:0}}
+
+/* question view (covers the board only, never the groups) */
+.qv{position:absolute;inset:0 18px 6px;z-index:10;background:var(--card);color:var(--ink);border-radius:24px;padding:12px 22px 14px;display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:8px;
+  box-shadow:0 0 0 4px var(--c),0 20px 60px rgba(0,0,0,.5);animation:open .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes open{from{transform:scale(.6) rotate(-2deg);opacity:0}to{transform:none;opacity:1}}
+.qh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.chip{background:var(--card2);border-radius:999px;padding:4px 14px;font-weight:600;font-size:.85rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chip.cat{--c:var(--c0);text-transform:none;background:var(--c);color:#16233A;box-shadow:none;border-radius:999px;padding:4px 16px}
+.chip.pts{background:var(--ink);color:var(--gold);font-family:var(--display);font-weight:800;font-size:1.25rem;letter-spacing:0;text-transform:none}
+.wild{background:linear-gradient(90deg,#FF5E5B,#FFC93C,#22B8A7,#8E7CFF);color:#16233A;font-family:var(--display);font-weight:800;font-size:1.2rem;padding:4px 18px;border-radius:999px;animation:shine 1.2s linear infinite;background-size:300% 100%}
+@keyframes shine{to{background-position:300% 0}}
+.qbody{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:18px;min-height:0;align-items:center}
+.qbody>*{min-height:0;max-height:100%}
+.qbody.nofig{grid-template-columns:1fr}
+.qtext{font-family:var(--display);font-weight:700;font-size:clamp(1.5rem,min(3.3vw,6vh),3rem);line-height:1.3;display:grid;gap:10px;align-content:center;overflow:auto}
+.qv.rev .qtext>div:first-child{font-size:.66em}
+.qv.rev .qtext .ans{font-size:.95em;padding:4px 16px}
+.qtext .ans{background:var(--goodbg);border:4px solid var(--good);border-radius:18px;padding:8px 18px;color:#0E5C38;font-size:1.1em}
+.qtext .steps{font-family:var(--body);font-weight:500;font-size:clamp(.9rem,min(1.6vw,2.8vh),1.45rem);line-height:1.5;background:var(--card2);border-radius:16px;padding:10px 16px}
+.qtext .steps b{color:#0E6E7E}
+.qtext .hintnote{font-family:var(--body);font-size:clamp(.85rem,1.3vw,1.15rem);font-weight:500;color:var(--muted)}
+.figbox{display:grid;place-items:center;min-height:0;height:100%;overflow:hidden}
+.plane{height:100%;width:auto;max-width:100%;max-height:100%;aspect-ratio:1;border-radius:14px;box-shadow:0 0 0 3px var(--card2)}
+.nogrid{display:grid;place-items:center;text-align:center;gap:10px;background:var(--card2);border-radius:18px;padding:22px;font-weight:600;color:var(--muted);height:90%;width:100%}
+.qf{display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap}
+.big{border-radius:16px;padding:10px 24px;font-family:var(--display);font-weight:800;font-size:1.3rem;line-height:1;box-shadow:0 6px 0 rgba(0,0,0,.3);transition:transform .08s}
+.big:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.big.go{background:var(--gold);color:#16233A}
+.big.soft{background:var(--card2);color:var(--ink)}
+.big.dark{background:var(--ink);color:#fff}
+.big.aw{background:var(--c);color:#16233A;font-size:1.5rem;padding:12px 26px}
+.big.no{background:#E7E1D0;color:#4a4a4a}
+.timer{display:inline-flex;align-items:center;gap:8px;background:var(--card2);border-radius:14px;padding:6px 14px;font-family:var(--display);font-weight:800;font-size:1.3rem;color:var(--ink)}
+.timer .tb{width:130px;height:12px;border-radius:99px;background:#fff;overflow:hidden;border:2px solid var(--line,#DDD6C4)}
+.timer .tb i{display:block;height:100%;width:100%;background:var(--good);transition:width .25s linear}
+.timer.hot .tb i{background:var(--bad)}
+.awardlabel{font-family:var(--display);font-weight:800;font-size:1.15rem;color:var(--ink)}
+
+/* setup */
+.setup{max-width:1100px;margin:0 auto;padding:14px 20px;overflow:auto;height:100%;display:grid;align-content:start;gap:16px}
+.setup h1{font-size:clamp(2.2rem,5vw,3.6rem);font-weight:800}
+.setup h1 span{color:var(--gold)}
+.lead{color:rgba(255,255,255,.85);max-width:54rem;margin:4px 0 0}
+.panel{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);border-radius:20px;padding:16px 20px}
+.panel h3{font-size:1.2rem;margin-bottom:10px}
+.seg{display:inline-flex;gap:6px;flex-wrap:wrap}
+.seg button{background:rgba(255,255,255,.12);border:2px solid rgba(255,255,255,.25);border-radius:12px;padding:8px 18px;font-weight:700;font-size:1.05rem}
+.seg button.on{background:var(--gold);color:#16233A;border-color:var(--gold)}
+.tcfg{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:12px}
+.tc{--c:var(--t0);border:2.5px solid var(--c);border-radius:16px;padding:10px 12px;background:rgba(0,0,0,.2);display:grid;gap:6px}
+.tc label{font-size:.8rem;color:rgba(255,255,255,.75)}
+.tc input{width:100%;font-family:var(--display);font-weight:800;font-size:1.4rem;padding:8px 10px;border-radius:10px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.1);color:#fff}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;font-size:.98rem;line-height:1.5}
+.rules div{background:rgba(0,0,0,.2);border-radius:14px;padding:10px 14px}
+.rules b{color:var(--gold)}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.ov{position:fixed;inset:0;background:rgba(3,15,20,.82);display:grid;place-items:center;z-index:20;padding:20px;backdrop-filter:blur(3px)}
+.modal{background:var(--card);color:var(--ink);border-radius:26px;padding:24px 30px;max-width:860px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5);max-height:92dvh;overflow:auto}
+.modal h2{font-size:clamp(1.8rem,3.5vw,2.6rem);margin-bottom:8px}
+.modal p{color:var(--muted);font-size:1.1rem;line-height:1.55;margin:4px 0 12px}
+.banner{position:fixed;left:50%;top:26%;transform:translateX(-50%);z-index:30;font-family:var(--display);font-weight:800;font-size:clamp(2rem,6vw,5rem);color:var(--gold);text-shadow:0 4px 0 rgba(0,0,0,.5),0 0 40px rgba(255,201,60,.6);pointer-events:none;animation:ban 1.7s ease-out forwards;white-space:nowrap}
+@keyframes ban{0%{transform:translate(-50%,20px) scale(.5);opacity:0}15%{transform:translate(-50%,0) scale(1.15);opacity:1}80%{opacity:1}100%{transform:translate(-50%,-30px) scale(1);opacity:0}}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:25}
+
+/* final */
+.final{padding:10px 24px;overflow:auto;height:100%;display:grid;grid-auto-rows:min-content;align-content:start;gap:14px}
+.final h1{font-size:clamp(2.2rem,5vw,4rem);text-align:center}
+.final h1 span{color:var(--gold)}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:16px}
+.pcol{--c:var(--t0);display:grid;justify-items:center;gap:4px;width:clamp(150px,22vw,300px)}
+.pbar{width:100%;background:var(--c);border-radius:16px 16px 0 0;display:grid;align-content:start;justify-items:center;padding-top:10px;color:#16233A;box-shadow:inset 0 -8px 0 rgba(0,0,0,.18)}
+.pbar .rk{font-family:var(--display);font-weight:800;font-size:3rem;line-height:1}
+.pcol .nm{font-family:var(--display);font-weight:800;font-size:clamp(1.3rem,2.6vw,2.2rem)}
+.pcol .pts{font-weight:600;opacity:.9}
+.reports{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.rep{background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.18);border-radius:18px;padding:12px 16px}
+.rep h3{font-size:1.15rem;margin-bottom:6px}
+.rep ul{margin:0;padding-left:1.2em;line-height:1.7}
+.sk{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;font-size:.92rem;margin:3px 0}
+.sk i{display:block;height:9px;border-radius:9px;background:rgba(255,255,255,.15);overflow:hidden;grid-column:1/3}
+.sk i b{display:block;height:100%;background:var(--gold)}
+.hint{font-size:.85rem;color:rgba(255,255,255,.7)}
+.bottom-actions{display:flex;justify-content:center;gap:12px;align-items:center;min-height:46px}
+@media (max-height:700px){.top{min-height:44px;padding:4px 18px 8px}.logo img{height:26px}.brand{font-size:1.1rem}.coins{display:none}.gscore{font-size:2.6rem}.grp{padding:4px 12px;gap:2px 12px}.adj button{padding:2px 0}.gname{font-size:1.2rem}.cat{padding:3px 8px}.cats{gap:8px}.qv{padding:8px 18px 10px;gap:6px}.big{padding:8px 20px;font-size:1.15rem}.big.aw{font-size:1.3rem;padding:8px 20px}}
+@media (max-width:820px){body{overflow:auto}#app{height:auto;min-height:100dvh}.grid{grid-template-rows:none;grid-auto-rows:80px}.groups{grid-auto-flow:row}.qbody{grid-template-columns:1fr}.qv{position:fixed;inset:8px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<canvas id="confetti"></canvas>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="chest" viewBox="0 0 64 56"><rect x="6" y="26" width="52" height="26" rx="4" fill="#8B5A2B" stroke="#4A2C0E" stroke-width="3"/><path d="M6 26 Q6 5 32 5 Q58 5 58 26 Z" fill="#B87333" stroke="#4A2C0E" stroke-width="3"/><rect x="27" y="14" width="10" height="34" fill="#FFC93C" stroke="#4A2C0E" stroke-width="2"/><circle cx="32" cy="33" r="6" fill="#FFC93C" stroke="#4A2C0E" stroke-width="2.5"/><rect x="30.5" y="33" width="3" height="7" fill="#4A2C0E"/></symbol>
+</defs></svg>
+<script>
+"use strict";
+const LOGO="data:image/jpeg;base64,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";
+const $=s=>document.querySelector(s);
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const MINUS="−";
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* number formatting: minus sign, whole numbers or .5 */
+const nf=n=>{const a=Math.abs(n);return (n<0?MINUS:"")+(Number.isInteger(a)?String(a):a.toFixed(1))};
+const ab=n=>nf(Math.abs(n));
+const P=(n,x,y)=>`${n}(${nf(x)}, ${nf(y)})`;
+
+/* ================= question generators (verified indices engine) ================= */
+/* exact rationals (BigInt) so wrong answers can never equal the right one */
+const gcd=(a,b)=>{a=a<0n?-a:a;b=b<0n?-b:b;while(b){[a,b]=[b,a%b]}return a};
+function R(n,d=1){n=BigInt(n);d=BigInt(d);if(d<0n){n=-n;d=-d}const g=gcd(n,d)||1n;return{n:n/g,d:d/g}}
+const rEq=(a,b)=>a.n===b.n&&a.d===b.d;
+function rPow(r,e){if(e===0)return R(1);const k=BigInt(Math.abs(e));const n=r.n**k,d=r.d**k;return e>0?R(n,d):R(d,n)}
+
+/* html builders */
+const num=n=>n<0?MINUS+(-n):String(n);
+const sup=x=>`<sup>${x}</sup>`;
+const fr=(n,d)=>`<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const pw=(b,e)=>e===1?`${b}`:`${b}${sup(num(e))}`;
+const pwP=(inner,e)=>`(${inner})${sup(e)}`;
+const rHtml=r=>{const neg=r.n<0n;const a=neg?-r.n:r.n;const s=(neg?MINUS:"");return r.d===1n?s+a:s+fr(a,r.d)};
+const term=(c,l,e)=>{ if(e===0) return String(c); return (c===1?"":c)+l+(e===1?"":sup(num(e))) };
+const Or=r=>({h:rHtml(r),k:"r"+r.n+"/"+r.d,v:r});
+const Op=(b,e)=>({h:pw(b,e),k:"p"+b+"^"+e,v:rPow(R(b),e)});
+const Ox=h=>({h,k:h});
+const Od=(h,r)=>({h,k:"d"+h,v:r});
+
+function build(stem,correct,cands,why,skill){
+  const seen=[correct],out=[];
+  for(const c of shuffle(cands.filter(Boolean))){
+    if(seen.some(s=>s.k===c.k||(s.v&&c.v&&rEq(s.v,c.v))))continue;
+    seen.push(c);out.push(c);if(out.length===3)break;
+  }
+  if(out.length<3)return null;
+  const opts=shuffle([correct,...out]);
+  return{stem,opts,ans:opts.indexOf(correct),why,skill};
+}
+const BASES=[2,3,4,5,6,7,8,9,10,11,12];
+const LET=["a","x","y","m","n","p","t","k"];
+const v2=(l1,a,l2,b)=>term(1,l1,a)+term(1,l2,b);
+
+/* ================= question generators ================= */
+const SKILLS={
+  indexform:"Index form",mult:"Multiply rule",div:"Divide rule",pow:"Power of a power",zero:"Zero index",
+  neg:"Negative index",frac:"Fractional index",solve:"Solve for the index",spot:"Spot the mistake",combo:"Mixed laws"
+};
+const GEN={};
+
+GEN.indexform=l=>{
+  if(l<=1||Math.random()<.4){
+    const [b1,b2]=shuffle([2,3,5,7,11]).slice(0,2);let p=rnd(2,4),q=rnd(1,3);if(p===q)q=q===1?2:1;
+    const ex=Array(p).fill(b1).concat(Array(q).fill(b2)).join(" × ");
+    const c=Ox(`${pw(b1,p)} × ${pw(b2,q)}`);
+    return build(`<span class="sm">Write in index form</span>${ex}`,c,[
+      Ox(`${pw(b1,q)} × ${pw(b2,p)}`),Ox(`${pw(b1*b2,p+q)}`),Ox(`${pw(b1,p+q)} × ${b2}`),Ox(`${pw(b1,p)} + ${pw(b2,q)}`),Ox(`${pw(b1,p)} × ${pw(b2,q+1)}`)],
+      `Count how many times each number is multiplied: <b>${pw(b1,p)}</b> and <b>${pw(b2,q)}</b>.`,"indexform");
+  }
+  if(Math.random()<.5){
+    const b=pick([2,3,4,5,6,7,8,9,10]),n=rnd(2,4);
+    return build(`<span class="sm">Write in index form</span>${fr(1,Array(n).fill(b).join(" × "))}`,Op(b,-n),
+      [Op(b,n),Op(b,-(n+1)),Op(b,-(n-1)),Op(b,-n*2)],`1 over ${b}${sup(n)} flips to a <b>negative index</b>: ${pw(b,-n)}.`,"indexform");
+  }
+  const [b1,b2]=shuffle([2,3,5,7]).slice(0,2);let p=rnd(2,3),q=rnd(2,3);if(p===q)q=p===2?3:2;
+  const c=Ox(`${pw(b1,-p)} × ${pw(b2,-q)}`);
+  return build(`<span class="sm">Write in index form</span>${fr(1,Array(p).fill(b1).concat(Array(q).fill(b2)).join(" × "))}`,c,
+    [Ox(`${pw(b1,-q)} × ${pw(b2,-p)}`),Ox(`${pw(b1,p)} × ${pw(b2,q)}`),Ox(`${pw(b1,-p)} × ${pw(b2,q)}`),Ox(`${pw(b1*b2,-(p+q))}`)],
+    `Each number goes under the line, so each index is <b>negative</b>.`,"indexform");
+};
+
+GEN.mult=l=>{
+  if(l<=1){const b=pick(BASES),m=rnd(2,6),n=rnd(2,6);
+    return build(`${pw(b,m)} × ${pw(b,n)}`,Op(b,m+n),[Op(b,m*n),Op(b*b,m+n),Op(b,m+n+1),Op(b,m+n-1),Op(2*b,m+n)],
+      `Same base: <b>add</b> the indices. ${b}${sup(m)} × ${b}${sup(n)} = ${b}${sup(m+"+"+n)} = ${b}${sup(m+n)}`,"mult");}
+  if(l===2){const b=pick([2,3,4,5,6,7,10]);let m,n;do{m=rnd(-6,6);n=rnd(-6,6)}while(m===0||n===0||m+n===0||(m>0&&n>0));
+    return build(`${pw(b,m)} × ${pw(b,n)}`,Op(b,m+n),[Op(b,m*n),Op(b,m-n),Op(b,-(m+n)),Op(b,m+n+1),Op(b,m+n-1)],
+      `Add the indices (watch the signs): ${num(m)} + ${num(n)} = ${num(m+n)}.`,"mult");}
+  const L=pick(LET);
+  if(Math.random()<.6){const c1=rnd(2,6),c2=rnd(2,6),m=rnd(1,6),n=rnd(1,6);
+    return build(`${term(c1,L,m)} × ${term(c2,L,n)}`,Ox(term(c1*c2,L,m+n)),
+      [Ox(term(c1+c2,L,m+n)),Ox(term(c1*c2,L,m*n)),Ox(term(c1*c2,L,m+n+1)),Ox(term(c1*c2,L,m+n-1))],
+      `Multiply the numbers (${c1}×${c2}), <b>add</b> the indices (${m}+${n}).`,"mult");}
+  const [L1,L2]=shuffle(LET).slice(0,2);const a=rnd(1,4),b=rnd(1,4),c=rnd(1,4),d=rnd(1,4);
+  return build(`${v2(L1,a,L2,b)} × ${v2(L1,c,L2,d)}`,Ox(v2(L1,a+c,L2,b+d)),
+    [Ox(v2(L1,a*c,L2,b*d)),Ox(v2(L1,a+c,L2,b*d)),Ox(v2(L1,a+c,L2,b+d+1)),Ox(v2(L1,a+c+1,L2,b+d))],
+    `Do each letter separately and add its indices.`,"mult");
+};
+
+GEN.div=l=>{
+  if(l<=1){const b=pick(BASES),n=rnd(2,5),m=n+rnd(1,4);
+    return build(`${pw(b,m)} ÷ ${pw(b,n)}`,Op(b,m-n),[Op(b,m+n),Op(b,m*n),Op(b,m-n+1),Op(b,m-n-1),Op(1,m-n)],
+      `Same base: <b>subtract</b> the indices. ${m} − ${n} = ${m-n}.`,"div");}
+  if(l===2){const b=pick([2,3,4,5,6,7,10]),m=rnd(2,5),n=m+rnd(1,5);
+    return build(`${pw(b,m)} ÷ ${pw(b,n)}`,Op(b,m-n),[Op(b,n-m),Op(b,m+n),Op(b,-(m+n)),Op(b,m-n+1),Op(b,m*n)],
+      `Subtract: ${m} − ${n} = ${num(m-n)}. The answer is a <b>negative</b> index.`,"div");}
+  const L=pick(LET),c2=rnd(2,4),k=rnd(2,5),c1=c2*k;let m,n;do{m=rnd(1,7);n=rnd(1,7)}while(m===n);
+  return build(`${term(c1,L,m)} ÷ ${term(c2,L,n)}`,Ox(term(k,L,m-n)),
+    [Ox(term(k,L,m+n)),Ox(term(k,L,n-m)),Ox(term(c1-c2,L,m-n)),Ox(term(k,L,m*n)),Ox(term(c1*c2,L,m-n))],
+    `Divide the numbers (${c1}÷${c2} = ${k}), <b>subtract</b> the indices (${m}−${n}).`,"div");
+};
+
+GEN.pow=l=>{
+  if(l<=1){const b=pick(BASES),m=rnd(2,4),n=rnd(2,4);
+    const c=[Op(b,m+n),Op(b,m*n+m),Op(b,m*n-n),Op(b,m*n+1)];if(m**n<=40)c.push(Op(b,m**n));
+    return build(pwP(pw(b,m),n),Op(b,m*n),c,`Power of a power: <b>multiply</b> the indices. ${m} × ${n} = ${m*n}.`,"pow");}
+  if(l===2){const b=pick([2,3,4,5,10]);let m,n;do{m=pick([-4,-3,-2,-1,2,3,4]);n=pick([-3,-2,-1,2,3])}while(m>0&&n>0||m*n===m+n);
+    return build(pwP(pw(b,m),num(n)),Op(b,m*n),[Op(b,m+n),Op(b,-m*n),Op(b,m-n),Op(b,m*n+1)],
+      `Multiply the indices: ${num(m)} × ${num(n)} = ${num(m*n)}.`,"pow");}
+  if(Math.random()<.6){const L=pick(LET),c=rnd(2,4),m=rnd(2,4),n=rnd(2,3);
+    return build(pwP(term(c,L,m),n),Ox(`${c**n}${L}${sup(m*n)}`),
+      [Ox(term(c,L,m*n)),Ox(`${c*n}${L}${sup(m*n)}`),Ox(`${c**n}${L}${sup(m+n)}`),Ox(`${c**n}${L}${sup(m)}`)],
+      `The power applies to the <b>number too</b>: ${c}${sup(n)} = ${c**n}, and ${m}×${n} = ${m*n}.`,"pow");}
+  const [L1,L2]=shuffle(LET).slice(0,2),a=rnd(1,4),b=rnd(1,4),n=rnd(2,3);
+  return build(pwP(v2(L1,a,L2,b),n),Ox(v2(L1,a*n,L2,b*n)),
+    [Ox(v2(L1,a*n,L2,b+n)),Ox(v2(L1,a+n,L2,b+n)),Ox(v2(L1,a*n,L2,b)),Ox(v2(L1,a*n+1,L2,b*n))],
+    `Multiply <b>every</b> index inside by ${n}.`,"pow");
+};
+
+GEN.zero=l=>{
+  const b=rnd(2,99);
+  if(l<=1)return build(`What is ${pw(b,0)} ?`,Or(R(1)),[Or(R(0)),Or(R(b)),Ox("undefined")],`<b>Anything (not zero) to the power 0 is 1.</b>`,"zero");
+  if(l===2){const c=rnd(2,9),s=rnd(2,9);
+    if(Math.random()<.5)return build(`${s}${sup(0)} + ${s}${sup(1)}`,Or(R(s+1)),[Or(R(s)),Or(R(1)),Or(R(2*s)),Or(R(s-1))],
+      `${s}${sup(0)} = 1 and ${s}${sup(1)} = ${s}, so 1 + ${s} = ${s+1}.`,"zero");
+    return build(`${c} × ${pw(s,0)}`,Or(R(c)),[Or(R(c*s)),Or(R(0)),Or(R(1)),Or(R(c+1))],`${s}${sup(0)} = 1, so ${c} × 1 = ${c}.`,"zero");}
+  const L=pick(LET),c=rnd(2,6),t=Math.random();
+  if(t<.34)return build(`(${c}${L})${sup(0)}`,Or(R(1)),[Or(R(c)),Or(R(0)),Ox(`${c}${L}`)],`The bracket is raised to 0, so the <b>whole bracket</b> becomes 1.`,"zero");
+  if(t<.67)return build(`${c}${L}${sup(0)}`,Or(R(c)),[Or(R(1)),Or(R(0)),Ox(`${c}${L}`)],`Only <b>${L}</b> has the index 0 (so ${L}${sup(0)} = 1): ${c} × 1 = ${c}.`,"zero");
+  const d=rnd(2,5);
+  return build(`(${c}${L})${sup(0)} + ${d}${L}${sup(0)}`,Or(R(1+d)),[Or(R(c+d)),Or(R(1)),Or(R(d)),Ox(`${c}${L} + ${d}`)],`1 + ${d}×1 = ${1+d}.`,"zero");
+};
+
+GEN.neg=l=>{
+  if(l<=1){const b=pick([2,3,4,5,6,10]),n=rnd(2,3);
+    return build(`${pw(b,-n)} = ?`,Or(R(1,b**n)),[Or(R(-(b**n))),Or(R(-b*n)),Or(R(1,b*n)),Or(R(b**n))],
+      `A negative index means <b>1 over</b> the positive power: ${b}${sup(MINUS+n)} = ${fr(1,pw(b,n))}.`,"neg");}
+  if(l===2){
+    if(Math.random()<.65){const [p,q]=pick([[2,3],[3,4],[2,5],[3,2],[5,2],[4,3],[1,2],[3,5]]),n=rnd(1,3);
+      return build(`${pwP(fr(p,q),num(-n))} = ?`,Or(R(q**n,p**n)),[Or(R(p**n,q**n)),Or(R(-(p**n),q**n)),Or(R(q*n,p*n)),Or(R(q**n,p*n))],
+        `Negative index on a fraction: <b>flip the fraction</b>, then use the positive power.`,"neg");}
+    const n=rnd(2,4);
+    return build(`<span class="sm">Write as a decimal</span>${pw(10,-n)}`,Od("0."+"0".repeat(n-1)+"1",R(1,10**n)),
+      [Od("0."+"0".repeat(n)+"1",R(1,10**(n+1))),Od("0."+"0".repeat(Math.max(n-2,0))+"1",R(1,10**(n-1))),Od(MINUS+"1"+"0".repeat(n),R(-(10**n))),Od("1"+"0".repeat(n),R(10**n))],
+      `${pw(10,-n)} = ${fr(1,10**n)} = 0.${"0".repeat(n-1)}1`,"neg");}
+  const t=Math.random();
+  if(t<.4){const b=pick([2,3,4,5]),k=rnd(2,4)*1;
+    return build(`${pwP(pw(b,-1),num(-2))} = ?`,Or(R(b*b)),[Or(R(1,b*b)),Or(R(-(b*b))),Or(R(2*b)),Or(R(1,2*b))],
+      `Multiply the indices: (${MINUS}1) × (${MINUS}2) = +2, so ${b}${sup(2)} = ${b*b}.`,"neg");}
+  const b=pick([2,3,5]),k=b===2?rnd(3,6):b===3?rnd(2,4):rnd(2,3);
+  return build(`<span class="sm">Write as a power of ${b}</span>${fr(1,b**k)}`,Op(b,-k),[Op(b,k),Op(b,-(k+1)),Op(b,-(k-1)),Op(b*b,-k)],
+    `${b**k} = ${b}${sup(k)}, and 1 over it makes the index <b>negative</b>: ${b}${sup(MINUS+k)}.`,"neg");
+};
+
+const PERF={2:[4,9,16,25,36,49,64,81,100,121],3:[8,27,64,125,1000]};
+GEN.frac=l=>{
+  const pf=(a,n,d)=>`${a}${sup(fr(n,d))}`;
+  if(l<=1){const d=pick([2,2,3]),a=pick(PERF[d]),r=Math.round(Math.pow(a,1/d));
+    return build(`${pf(a,1,d)} = ?`,Or(R(r)),[Or(R(a,d)),Or(R(a*d)),Or(R(a**d)),Or(R(r*d)),Or(R(1,r))],
+      `The index ${fr(1,d)} means the <b>${d===2?"square":"cube"} root</b>: ${d===2?"√":"∛"}${a} = ${r}.`,"frac");}
+  if(l===2){const o=pick([[2,3],[2,3],[2,5],[3,2],[3,4],[4,3],[5,2],[2,2]].slice(0,7));const d=o[0],m=o[1];
+    const r=pick(d===2?[2,3,4,5,6,7,8,9,10]:d===3?[2,3,4,5]:d===4?[2,3]:[2]);const a=r**d;
+    return build(`${pf(a,m,d)} = ?`,Or(R(r**m)),[Or(R(a**m)),Or(R(r*m)),Or(R(a*m,d)),Or(R(m**d)),Or(R(r**(m+1)))],
+      `Root first, then the power: ${a}${sup(fr(m,d))} = (${d===2?"√":d===3?"∛":d+"√"}${a})${sup(m)} = ${r}${sup(m)} = ${r**m}.`,"frac");}
+  if(Math.random()<.5){const d=pick([2,2,3,4]),r=d===2?pick([2,3,4,5,6,8,10]):d===3?pick([2,3,4]):pick([2,3]),m=pick(d===2?[1,3]:d===3?[1,2]:[1,3]);const a=r**d;
+    return build(`${a}${sup(MINUS+fr(m,d))} = ?`,Or(R(1,r**m)),[Or(R(r**m)),Or(R(-(r**m))),Or(R(1,a**m)),Or(R(1,r*m)),Or(R(-1,r**m))],
+      `Negative = 1 over. Fractional = root. ${a}${sup(MINUS+fr(m,d))} = ${fr(1,pw(r,m))} = ${fr(1,r**m)}.`,"frac");}
+  const [p,q]=pick([[1,2],[2,3],[1,3],[3,4],[2,5],[3,5],[1,4]]),d=pick([2,3]),m=pick(d===2?[1,3]:[1,2]),neg=Math.random()<.5;const e=neg?-m:m;
+  const base=`${p**d}/${q**d}`;const ans=rPow(R(p,q),e);
+  return build(`${pwP(fr(p**d,q**d),(neg?MINUS:"")+fr(m,d))} = ?`,Or(ans),[Or(rPow(R(p,q),-e)),Or(R(-ans.n,ans.d)),Or(rPow(R(p,q),e*d)),Or(R(p**d*m,q**d*d))],
+    `Root the top and bottom first ${neg?"(a negative index means <b>flip</b> the fraction)":""}, then apply the power ${m}.`,"frac");
+};
+
+GEN.solve=l=>{
+  const X="<i>x</i>";
+  if(l<=1){const b=pick([2,3,5,10]),k=b===10?rnd(2,4):b===2?rnd(3,7):b===3?rnd(2,5):rnd(2,4),v=b**k;
+    return build(`${b}${sup(X)} = ${v}`,Or(R(k)),[Or(R(k+1)),Or(R(k-1)),Or(R(k+2)),Or(R(-k)),Or(R(2*k)),Or(R(b))],
+      `Write ${v} as a power of ${b}: ${v} = ${pw(b,k)}, so x = ${k}.`,"solve");}
+  if(l===2){const b=pick([2,3,5]);
+    if(Math.random()<.2)return build(`${pick([7,9,11,13])}${sup(X)} = 1`,Or(R(0)),[Or(R(1)),Or(R(-1)),Ox("no solution")],`Anything to the power 0 is 1, so x = 0.`,"solve");
+    const k=b===2?rnd(2,5):b===3?rnd(2,4):rnd(2,3);
+    return build(`${b}${sup(X)} = ${fr(1,b**k)}`,Or(R(-k)),[Or(R(k)),Or(R(-(k+1))),Or(R(-(k-1))),Or(R(1,k)),Or(R(-k*b))],
+      `${fr(1,b**k)} = ${b}${sup(MINUS+k)}, so x = ${MINUS}${k}.`,"solve");}
+  if(Math.random()<.35){const b=pick([2,3,5]),k=b===2?rnd(4,7):b===3?rnd(3,5):rnd(2,3),sh=rnd(1,3);
+    return build(`${b}${sup(X+" + "+sh)} = ${b**k}`,Or(R(k-sh)),[Or(R(k+sh)),Or(R(k)),Or(R(k-sh+1)),Or(R(k-sh-1)),Or(R(k*sh))],
+      `${b**k} = ${pw(b,k)}, so x + ${sh} = ${k}, x = ${k-sh}.`,"solve");}
+  const r=pick([2,3]),i=pick([2,3,4]);let j;do{j=rnd(1,5)}while(j===i);
+  return build(`${r**i}${sup(X)} = ${r**j}`,Or(R(j,i)),[Or(R(i,j)),Or(R(j-i)),Or(R(i*j)),Or(R(j,i+1)),Or(R(j+i,i))],
+    `Write both as powers of ${r}: ${r}${sup(i+"<i>x</i>")} = ${pw(r,j)}, so ${i}x = ${j}, x = ${j%i===0?j/i:fr(j,i)}.`,"solve");
+};
+
+GEN.combo=l=>{
+  const t=Math.random();
+  if(t<.34){const b=pick([2,3,4,5,6,7,10]);let m,n,p;do{m=rnd(2,6);n=rnd(2,6);p=rnd(2,6)}while(m+n-p===0);
+    return build(`(${pw(b,m)} × ${pw(b,n)}) ÷ ${pw(b,p)}`,Op(b,m+n-p),[Op(b,m+n+p),Op(b,m*n-p),Op(b,m-n+p),Op(b,m+n-p+1),Op(b,m+n-p-1)],
+      `Top first: ${m}+${n} = ${m+n}. Then divide: ${m+n} − ${p} = ${m+n-p}.`,"combo");}
+  if(t<.67){const b=pick([2,3,4,5,10]);let m,n,p;do{m=rnd(2,4);n=rnd(2,3);p=rnd(2,8)}while(m*n-p===0);
+    return build(`${pwP(pw(b,m),n)} ÷ ${pw(b,p)}`,Op(b,m*n-p),[Op(b,m+n-p),Op(b,m*n+p),Op(b,m*n*p),Op(b,m*n-p+1),Op(b,m*n-p-1)],
+      `Bracket first: ${m}×${n} = ${m*n}. Then divide: ${m*n} − ${p} = ${m*n-p}.`,"combo");}
+  const r=pick([2,3,5]),k=r===2?rnd(2,4):2,n=rnd(2,5);
+  return build(`<span class="sm">Write as a single power of ${r}</span>${r**k} × ${pw(r,n)}`,Op(r,k+n),[Op(r**k,n),Op(r,k*n),Op(r,k+n+1),Op(r,k+n-1),Op(r*k,n)],
+    `${r**k} = ${pw(r,k)}, so ${pw(r,k)} × ${pw(r,n)} = ${pw(r,k+n)}.`,"combo");
+};
+
+/* "Spot the mistake": 3 true lines, 1 false line */
+function lawLine(kind){
+  const b=pick([2,3,4,5,6,7,10]);
+  if(kind===0){const m=rnd(2,6),n=rnd(2,6);return{lhs:`${pw(b,m)} × ${pw(b,n)}`,t:Op(b,m+n),f:[Op(b,m*n),Op(b*b,m+n),Op(b,m+n+1)]};}
+  if(kind===1){const n=rnd(2,4),m=n+rnd(1,4);return{lhs:`${pw(b,m)} ÷ ${pw(b,n)}`,t:Op(b,m-n),f:[Op(b,m+n),Op(1,m-n),Op(b,m*n)]};}
+  if(kind===2){const m=rnd(2,4),n=rnd(2,4);return{lhs:pwP(pw(b,m),n),t:Op(b,m*n),f:[Op(b,m+n),Op(b,m*n+1),Op(b,m*n-1)]};}
+  if(kind===3)return{lhs:pw(b,0),t:Or(R(1)),f:[Or(R(0)),Or(R(b))]};
+  if(kind===4){const n=rnd(2,3);return{lhs:pw(b,-n),t:Or(R(1,b**n)),f:[Or(R(-(b**n))),Or(R(1,b*n)),Or(R(b**n))]};}
+  const d=pick([2,3]),a=pick(PERF[d]),r=Math.round(Math.pow(a,1/d));
+  return{lhs:`${a}${sup(fr(1,d))}`,t:Or(R(r)),f:[Or(R(a,d)),Or(R(a*d)),Or(R(a**d))]};
+}
+GEN.spot=l=>{
+  const kinds=shuffle([0,1,2,3,4,5]).slice(0,4),bad=rnd(0,3),opts=[];
+  let why="";
+  kinds.forEach((kd,i)=>{
+    const L=lawLine(kd);
+    if(i===bad){const wr=pick(L.f.filter(x=>!rEq(x.v,L.t.v)));opts.push(Ox(`${L.lhs} = ${wr.h}`));why=`The correct line is <b>${L.lhs} = ${L.t.h}</b>.`;}
+    else opts.push(Ox(`${L.lhs} = ${L.t.h}`));
+  });
+  return{stem:`<span class="sm">Four lines of working &mdash; which one has a MISTAKE?</span>&nbsp;`,opts,ans:bad,why,skill:"spot",small:true};
+};
+
+function makeIQ(skill,level){
+  for(let i=0;i<60;i++){
+    let lv=level;if(skill==="indexform"&&lv>2)lv=2;if(skill==="spot"&&lv<2)lv=2;
+    const q=GEN[skill](lv);
+    if(q&&q.opts.length===4&&new Set(q.opts.map(o=>o.h)).size===4){q.level=level;return q;}
+  }
+  return null;
+}
+
+
+const CATS=[
+  {id:"law",name:"Index Form & Laws",word:"ADD \u00b7 SUBTRACT",col:"var(--c0)"},
+  {id:"pow",name:"Power of a Power",word:"MULTIPLY",col:"var(--c1)"},
+  {id:"zn",name:"Zero & Negative",word:"a<sup>0</sup>=1 \u00b7 1/a<sup>n</sup>",col:"var(--c2)"},
+  {id:"frac",name:"Fractional & Solve",word:"ROOT \u00b7 SOLVE",col:"var(--c3)"}
+];
+const LV=[10,20,30,40,50];
+const TMAP={
+  law:[[["indexform",1]],[["mult",1]],[["div",1]],[["mult",2],["div",2],["mult",3],["div",3]],[["combo",3]]],
+  pow:[[["pow",1]],[["pow",2]],[["pow",3]],[["combo",3]],[["spot",2],["spot",3]]],
+  zn:[[["zero",1]],[["neg",1]],[["zero",2],["zero",3]],[["neg",2]],[["neg",3]]],
+  frac:[[["frac",1]],[["frac",2]],[["solve",1],["solve",2]],[["frac",3]],[["solve",3]]]
+};
+const RULE={
+  indexform:"Count how many times each number is multiplied.<br><b>1 over</b> a product of the same number gives a <b>negative</b> index: 1/(a&times;a&times;a) = a<sup>&minus;3</sup>.",
+  mult:"a<sup>m</sup> &times; a<sup>n</sup> = a<sup>m+n</sup><br>Same base: <b>ADD</b> the indices. Numbers in front are multiplied.",
+  div:"a<sup>m</sup> &divide; a<sup>n</sup> = a<sup>m&minus;n</sup><br>Same base: <b>SUBTRACT</b> the indices. Numbers in front are divided.",
+  pow:"(a<sup>m</sup>)<sup>n</sup> = a<sup>mn</sup><br><b>MULTIPLY</b> the indices. The power applies to <b>every</b> factor inside the bracket.",
+  zero:"a<sup>0</sup> = 1 for any a &ne; 0.<br>Only the part that has the 0 on it becomes 1.",
+  neg:"a<sup>&minus;n</sup> = 1 / a<sup>n</sup><br>A fraction? <b>Flip it</b> first, then the power is positive.",
+  frac:"a<sup>1/n</sup> = the nth <b>root</b> of a<br>a<sup>m/n</sup> = (nth root of a)<sup>m</sup> &mdash; <b>root first</b>. A negative index means 1 over.",
+  solve:"Write both sides as powers of the <b>same base</b>, then the indices must be equal.",
+  spot:"Check each line against the rules: ADD for &times;, SUBTRACT for &divide;, MULTIPLY for a power of a power, a<sup>0</sup>=1 and a<sup>&minus;n</sup>=1/a<sup>n</sup>.",
+  combo:"Brackets first. Then &times; means <b>ADD</b>, &divide; means <b>SUBTRACT</b>, a power of a power means <b>MULTIPLY</b>. Make the bases the same."
+};
+function makeQ(cat,lv){
+  const [sk,l]=pick(TMAP[cat][lv-1]);
+  let q=makeIQ(sk,l)||makeIQ("mult",1);
+  q.fig={free:lv===1};q.rule=RULE[q.skill]||RULE.mult;
+  return q;
+}
+
+/* ================= state ================= */
+const TCOL=["--t0","--t1","--t2","--t3"];
+const GNAMES=["Rooftop","Atrium","Skyline","Basement"];
+const CFG={n:3,names:GNAMES.slice(),secs:45,mute:false};
+const G={phase:"setup",teams:[],tiles:[],cur:-1,revealed:false,hint:false,turn:0,tleft:0,tmax:0,tiv:null};
+const POPS=[];
+
+function startGame(){
+  G.teams=[];
+  for(let i=0;i<CFG.n;i++)G.teams.push({i,name:(CFG.names[i]||GNAMES[i]).trim()||GNAMES[i],color:`var(${TCOL[i]})`,score:0,won:0});
+  G.tiles=[];
+  const wild=new Set(shuffle([...Array(20).keys()]).slice(0,3));
+  for(let r=0;r<5;r++)for(let c=0;c<4;c++){const i=r*4+c;G.tiles.push({i,cat:CATS[c].id,ci:c,lvl:r+1,pts:LV[r],state:"hidden",wild:wild.has(i),q:null,winner:-1,hint:false})}
+  G.turn=0;G.cur=-1;G.phase="board";render();
+}
+function allDone(){return G.tiles.every(t=>t.state==="done")}
+function openTile(i){
+  if(G.phase!=="board")return;const t=G.tiles[i];if(t.state==="done")return;
+  if(!t.q)t.q=makeQ(t.cat,t.lvl);
+  G.cur=i;G.revealed=false;G.hint=false;G.phase="q";stopTimer();ac();sfx.chest();if(t.wild)setTimeout(()=>{sfx.wild();banner("\u{1F48E} DOUBLE TROUBLE x2!")},350);render();
+}
+function closeQ(){stopTimer();G.phase="board";G.cur=-1;render()}
+function reveal(){if(G.phase!=="q"||G.revealed)return;stopTimer();G.revealed=true;sfx.reveal();render()}
+function showHint(){if(G.phase!=="q"||G.hint)return;G.hint=true;sfx.tick();render()}
+function award(ti){
+  if(G.phase!=="q")return;
+  const t=G.tiles[G.cur];stopTimer();
+  let pts=t.pts*(t.wild?2:1);if(G.hint&&t.lvl>1&&t.q.fig&&!t.q.fig.free)pts=Math.round(pts/2);
+  t.state="done";t.hint=G.hint;
+  if(ti>=0){const tm=G.teams[ti];const before=leader();tm.score=Math.max(0,tm.score+pts);tm.won++;t.winner=ti;t.got=pts;POPS.push([ti,"+"+pts]);sfx.good();
+    const after=leader();if(after!==-1&&after!==before&&before!==-1)setTimeout(()=>{banner(`${G.teams[after].name} take the lead!`);sfx.over()},500);}
+  else{t.winner=-1;sfx.none()}
+  G.turn=(G.turn+1)%G.teams.length;G.cur=-1;G.phase="board";
+  if(allDone()){render();setTimeout(endGame,700);return}
+  render();
+}
+function leader(){const m=Math.max(...G.teams.map(t=>t.score));const L=G.teams.filter(t=>t.score===m);return m>0&&L.length===1?L[0].i:-1}
+function adjust(i,d){const t=G.teams[i];const before=leader();t.score=Math.max(0,t.score+d);POPS.push([i,(d>0?"+":MINUS)+Math.abs(d)]);d>0?sfx.good():sfx.bad();
+  const after=leader();if(after!==-1&&after!==before&&before!==-1){banner(`${G.teams[after].name} take the lead!`);sfx.over()}
+  const el=document.querySelector(`.grp[data-i="${i}"] .gscore`);if(el)el.firstChild.nodeValue=t.score;const co=document.querySelector(`.grp[data-i="${i}"] .coins`);if(co)co.textContent=coinsOf(t.score);flushPops()}
+function endGame(){stopTimer();G.phase="final";render();sfx.fan();confetti()}
+
+/* timer */
+function startTimer(){stopTimer();G.tmax=CFG.secs;G.tleft=CFG.secs;updateTimer();
+  G.tiv=setInterval(()=>{G.tleft-=.25;if(G.tleft<=0){G.tleft=0;updateTimer();stopTimer();sfx.buzz();return}if(G.tleft<=5&&Math.abs(G.tleft-Math.round(G.tleft))<.01)sfx.tick();updateTimer()},250)}
+function stopTimer(){clearInterval(G.tiv);G.tiv=null}
+function updateTimer(){const b=$("#tbi"),w=$("#tmr"),n=$("#tnum");if(!b)return;b.style.width=Math.max(0,G.tleft/G.tmax*100)+"%";w.classList.toggle("hot",G.tleft<=10);n.textContent=Math.ceil(G.tleft)}
+
+/* ================= sound ================= */
+let AC=null;
+function ac(){try{if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();if(AC.state==="suspended")AC.resume()}catch(e){AC=null}return AC}
+function tone(f,d,type="sine",vol=.18,when=0,slide=0){if(CFG.mute)return;const c=ac();if(!c)return;const t=c.currentTime+when,o=c.createOscillator(),g=c.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),t+d);
+  g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+.02)}
+const sfx={
+  tick(){tone(900,.05,"square",.05)},
+  chest(){tone(180,.18,"sawtooth",.1,0,120);[784,988,1175,1568].forEach((f,i)=>tone(f,.2,"triangle",.14,.12+i*.07))},
+  wild(){[523,659,784,1047,1319].forEach((f,i)=>tone(f,.25,"square",.1,i*.08))},
+  reveal(){tone(660,.12,"triangle",.18);tone(880,.2,"triangle",.18,.1)},
+  good(){[523,659,784,1047].forEach((f,i)=>tone(f,.22,"triangle",.2,i*.09))},
+  bad(){tone(220,.4,"sawtooth",.16,0,-120)},
+  none(){tone(300,.25,"sine",.12);tone(240,.35,"sine",.12,.2)},
+  buzz(){tone(200,.5,"sawtooth",.2,0,-60)},
+  over(){tone(400,.5,"sawtooth",.1,0,500);tone(600,.4,"triangle",.14,.15)},
+  fan(){[523,523,523,659,784,659,784,1047].forEach((f,i)=>tone(f,.28,"triangle",.2,i*.14))}
+};
+function confetti(){
+  const cv=$("#confetti"),cx=cv.getContext("2d");cv.width=innerWidth;cv.height=innerHeight;
+  const cols=["#FF5E5B","#22B8A7","#FFC93C","#8E7CFF","#4FA8FF","#FF7AB6"];
+  const ps=Array.from({length:220},()=>({x:Math.random()*cv.width,y:-20-Math.random()*cv.height*.6,vx:(Math.random()-.5)*3,vy:2+Math.random()*4,s:6+Math.random()*8,c:pick(cols),r:Math.random()*6,vr:(Math.random()-.5)*.3}));
+  let f=0;(function loop(){cx.clearRect(0,0,cv.width,cv.height);ps.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/3,p.s,p.s*.6);cx.restore()});
+    if(++f<320)requestAnimationFrame(loop);else cx.clearRect(0,0,cv.width,cv.height)})();
+}
+function banner(txt){const b=document.createElement("div");b.className="banner";b.textContent=txt;document.body.appendChild(b);setTimeout(()=>b.remove(),1800)}
+function flushPops(){while(POPS.length){const [i,txt]=POPS.shift();const el=document.querySelector(`.grp[data-i="${i}"]`);if(!el)continue;const p=document.createElement("div");p.className="pop";p.textContent=txt;p.style.color=txt.startsWith("+")?"#7CFFB2":"#FF8A8A";el.appendChild(p);setTimeout(()=>p.remove(),1300)}}
+const coinsOf=s=>"\u{1FA99}".repeat(Math.min(12,Math.floor(s/10)))+(s>=130?"+":"");
+
+/* ================= rendering ================= */
+function topHTML(){
+  const t=G.teams[G.turn];
+  const mid=G.phase==="board"&&t?`<div class="turn"><span style="--c:${t.color}">${esc(t.name)} choose a chest!</span></div>`:`<div class="turn"></div>`;
+  return `<header class="top"><div class="logo"><img alt="Inspire" src="${LOGO}"></div><div class="brand">POWER VAULT<small>Grade 8 &middot; Lesson 1.6 Indices</small></div>${mid}
+   <button class="ib" id="bMute" title="Sound (M)">${CFG.mute?"🔇":"🔊"}</button><button class="ib" id="bFs" title="Fullscreen (F)">⛶</button><button class="ib" id="bHelp">?</button>
+   ${G.phase==="board"||G.phase==="q"?`<button class="ib" id="bEnd">End</button>`:""}</header>`;
+}
+function groupsHTML(){
+  return `<div class="groups" style="grid-template-columns:repeat(${G.teams.length},1fr)">${G.teams.map(t=>`
+   <div class="grp ${G.phase==="board"&&G.turn===t.i?"turn":""}" data-i="${t.i}" style="--c:${t.color}">
+    <div><div class="gname">${esc(t.name)}</div><div class="coins">${coinsOf(t.score)}</div></div>
+    <div class="gscore">${t.score}<small>pts</small></div>
+    <div class="adj"><button class="neg" data-adj="${t.i}" data-d="-10">−10</button><button class="neg" data-adj="${t.i}" data-d="-5">−5</button><button data-adj="${t.i}" data-d="5">+5</button><button data-adj="${t.i}" data-d="10">+10</button><button data-adj="${t.i}" data-d="20">+20</button></div>
+   </div>`).join("")}</div>`;
+}
+function boardHTML(){
+  const cats=CATS.map((c,i)=>`<div class="cat" style="--c:var(--c${i})"><b>${c.name}</b><small>${c.word}</small></div>`).join("");
+  const tiles=G.tiles.map(t=>{
+    const col=`var(--c${t.ci})`;
+    if(t.state==="done"){const w=t.winner>=0?G.teams[t.winner]:null;
+      return `<div class="tile done" style="--c:${col}"><svg viewBox="0 0 64 56"><use href="#chest"/></svg><div class="won">${w?`<b style="--w:${w.color}">${esc(w.name)}</b><i>+${t.got} pts</i>`:`<i>nobody</i>`}</div></div>`}
+    return `<button class="tile" data-t="${t.i}" style="--c:${col}" aria-label="Open chest ${t.pts} points ${CATS[t.ci].name}"><svg viewBox="0 0 64 56"><use href="#chest"/></svg><span class="pts">${t.pts}</span></button>`}).join("");
+  return `<div class="stage"><div class="cats">${cats}</div><div class="grid">${tiles}</div>${G.phase==="q"?qvHTML():""}</div>`;
+}
+function qvHTML(){
+  const t=G.tiles[G.cur],q=t.q,showRule=q.fig.free||G.hint||G.revealed;
+  const penal=G.hint&&t.lvl>1&&!q.fig.free;
+  const pts=t.pts*(t.wild?2:1)/(penal?2:1);
+  const fig=showRule?`<div class="rulecard"><h4>The rule</h4>${q.rule}</div>`:`<div class="nogrid"><div style="font-size:1.6rem">\u{1F4D6}</div><div>Rule hidden.<br>Work it out, or take a hint.</div><button class="big dark" id="bHint">Show the rule <small>(half points)</small></button></div>`;
+  const lines=q.skill==="spot"?`<div class="lines">${q.opts.map((o,k)=>`<div><b>${"ABCD"[k]}</b> ${o.h}</div>`).join("")}</div>`:"";
+  const ansH=q.skill==="spot"?`Line ${"ABCD"[q.ans]} &mdash; ${q.opts[q.ans].h}`:q.skill==="solve"?`<i>x</i> = ${q.opts[q.ans].h}`:q.opts[q.ans].h;
+  const timer=!G.revealed?`<span class="timer" id="tmr"><button class="big go" id="bTimer" style="padding:4px 12px;font-size:1rem;box-shadow:none">\u23F1 Start</button><span class="tb"><i id="tbi"></i></span><span id="tnum">${CFG.secs}</span></span>`:"";
+  const foot=G.revealed?`<span class="awardlabel">Who earned ${pts} pts?</span>${G.teams.map(m=>`<button class="big aw" style="--c:${m.color}" data-aw="${m.i}">${esc(m.name)}</button>`).join("")}<button class="big no" data-aw="-1">Nobody</button>`
+    :`${timer}<button class="big go" id="bShow">Show answer <kbd style="background:rgba(0,0,0,.15);border-color:rgba(0,0,0,.3);color:#16233A">Space</kbd></button><button class="big soft" id="bClose">Back to the board</button>`;
+  return `<div class="qv ${G.revealed?"rev":""} ${q.skill==="spot"?"spot":""}" style="--c:var(--c${t.ci})"><div class="qh"><span class="chip cat" style="--c:var(--c${t.ci})">${CATS[t.ci].name}</span><span class="chip pts">${pts} pts</span>${t.wild?`<span class="wild">\u{1F48E} DOUBLE TROUBLE &times;2</span>`:""}${penal?`<span class="chip">rule hint used: half points</span>`:""}</div>
+   <div class="qbody"><div class="qtext"><div>${q.stem}${lines}</div>${G.revealed?`<div class="ans">${ansH}</div><div class="steps">${q.why}</div>`:""}</div><div class="figbox">${fig}</div></div>
+   <div class="qf">${foot}</div></div>`;
+}
+function setupHTML(){
+  const tc=Array.from({length:CFG.n},(_,i)=>`<div class="tc" style="--c:var(${TCOL[i]})"><label>Group ${i+1} name</label><input data-nm="${i}" value="${esc(CFG.names[i])}" maxlength="16"></div>`).join("");
+  return `<div class="setup"><div style="display:flex;gap:16px;align-items:center"><h1>Power <span>Vault</span></h1></div>
+  <p class="lead">Grade 8 &middot; Lesson 1.6 Indices. A board of <b>20 hidden treasure chests</b>. Touch a chest and the question appears: index form, the multiply / divide / power laws, zero and negative indices, fractional indices and solving for the index. The harder the chest, the more points.</p>
+  <div class="panel"><h3>1 &middot; Groups</h3><div class="seg" id="segN">${[2,3,4].map(n=>`<button data-n="${n}" class="${CFG.n===n?"on":""}">${n} groups</button>`).join("")}</div><div class="tcfg">${tc}</div></div>
+  <div class="panel"><h3>2 &middot; Timer per question</h3><div class="seg" id="segT">${[30,45,60,90].map(n=>`<button data-s="${n}" class="${CFG.secs===n?"on":""}">${n} s</button>`).join("")}</div> <span class="hint">The timer is optional &mdash; start it with the &#9201; button on a question.</span></div>
+  <div class="panel"><h3>How it plays</h3><div class="rules">
+   <div><b>Pick.</b> Groups take turns to choose a chest. Touch it: the question opens.</div>
+   <div><b>Answer.</b> The group works it out on a whiteboard. Press <b>Show answer</b> when ready.</div>
+   <div><b>Add the points.</b> Tap the group that was right &mdash; or <b>Nobody</b>. Any group can steal! You can also use <b>&minus;10 / &minus;5 / +5 / +10 / +20</b> on every group, at any time.</div>
+   <div><b>Surprises.</b> 3 chests are secretly <b>DOUBLE TROUBLE</b> (points &times;2). The rule card is a hint that costs half the points.</div></div></div>
+  <div style="display:flex;gap:14px;align-items:center;padding-bottom:20px"><button class="big go" id="bGo">Open the treasure board</button><span class="hint">Tip: press <kbd>F</kbd> for fullscreen on the board</span></div></div>`;
+}
+function finalHTML(){
+  const rank=G.teams.slice().sort((a,b)=>b.score-a.score),order=[1,0,2].filter(i=>rank[i]),hs={0:"24vh",1:"18vh",2:"13vh"};
+  const tie=rank.length>1&&rank[0].score===rank[1].score;
+  const cs=CATS.map((c,ci)=>{const ts=G.tiles.filter(t=>t.ci===ci&&t.state==="done");const ok=ts.filter(t=>t.winner>=0).length;const hd=ts.filter(t=>t.hint).length;return{c,ok,n:ts.length,hd}});
+  const miss=G.tiles.filter(t=>t.state==="done"&&t.winner<0).map(t=>`${CATS[t.ci].name} (${t.pts})`);
+  return `<div class="final"><h1>${tie?"A tie for the treasure!":`<span>${esc(rank[0].name)}</span> found the treasure!`}</h1>
+   <div class="podium">${order.map(i=>{const t=rank[i];return `<div class="pcol" style="--c:${t.color}"><div class="nm">${esc(t.name)}</div><div class="pts">${t.score} points &middot; ${t.won} chests</div><div class="pbar" style="height:${hs[i]}"><span class="rk">${i+1}</span></div></div>`}).join("")}</div>
+   <div class="reports"><div class="rep"><h3>Teacher: what to re-teach</h3>${cs.map(x=>{const p=x.n?Math.round(x.ok/x.n*100):0;return `<div class="sk"><span>${x.c.name} (${x.c.word})</span><span>${x.ok}/${x.n} answered &middot; ${x.hd} rule hints</span><i><b style="width:${p}%"></b></i></div>`}).join("")}</div>
+   <div class="rep"><h3>Chests nobody got</h3>${miss.length?`<ul>${miss.map(m=>`<li>${m}</li>`).join("")}</ul>`:`<p class="hint">Every chest was won!</p>`}</div></div>
+   <div class="bottom-actions"><button class="big go" id="bAgain">Play again (new questions)</button><button class="big soft" id="bNew">New groups</button></div></div>`;
+}
+function render(){
+  const app=$("#app");let body="";
+  if(G.phase==="setup")body=`${topHTML()}${setupHTML()}<div></div>`;
+  else if(G.phase==="final")body=`${topHTML()}${finalHTML()}<div></div>`;
+  else body=`${topHTML()}${boardHTML()}${groupsHTML()}`;
+  app.innerHTML=body;bind();flushPops();
+}
+function bind(){
+  const on=(s,f)=>{const e=$(s);if(e)e.onclick=f};
+  on("#bMute",()=>{CFG.mute=!CFG.mute;render()});on("#bFs",toggleFs);on("#bHelp",showHelp);
+  on("#bEnd",()=>{if(confirm("End the game now and show the podium?"))endGame()});
+  on("#bShow",reveal);on("#bClose",closeQ);on("#bHint",showHint);on("#bTimer",()=>{ac();startTimer()});
+  on("#bAgain",()=>startGame());on("#bNew",()=>{G.phase="setup";render()});
+  document.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>openTile(+b.dataset.t));
+  document.querySelectorAll("[data-aw]").forEach(b=>b.onclick=()=>award(+b.dataset.aw));
+  document.querySelectorAll("[data-adj]").forEach(b=>b.onclick=()=>adjust(+b.dataset.adj,+b.dataset.d));
+  if(G.phase==="setup"){
+    document.querySelectorAll("#segN [data-n]").forEach(b=>b.onclick=()=>{saveSetup();CFG.n=+b.dataset.n;render()});
+    document.querySelectorAll("#segT [data-s]").forEach(b=>b.onclick=()=>{saveSetup();CFG.secs=+b.dataset.s;render()});
+    on("#bGo",()=>{saveSetup();ac();startGame()});
+  }
+}
+function saveSetup(){document.querySelectorAll("[data-nm]").forEach(e=>CFG.names[+e.dataset.nm]=e.value)}
+function toggleFs(){if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen()}
+function showHelp(){
+  if($("#ov"))return;const ov=document.createElement("div");ov.className="ov";ov.id="ov";
+  ov.innerHTML=`<div class="modal"><h2>Teacher keys</h2><p>Touch a chest to open it &nbsp;&middot;&nbsp; <b>Space</b> show the answer &nbsp;&middot;&nbsp; <b>1&ndash;4</b> give the points to that group &nbsp;&middot;&nbsp; <b>N</b> nobody &nbsp;&middot;&nbsp; <b>Esc</b> back to the board &nbsp;&middot;&nbsp; <b>M</b> sound &nbsp;&middot;&nbsp; <b>F</b> fullscreen</p>
+  <p>The <b>&minus;10 / &minus;5 / +5 / +10 / +20</b> buttons under every group add or remove points by hand at any moment &mdash; for steals, good explanations or teamwork.</p>
+  <div class="row"><button class="big go" id="hx">Back to the game</button></div></div>`;
+  document.body.appendChild(ov);ov.onclick=e=>{if(e.target===ov||e.target.id==="hx")ov.remove()};
+}
+document.addEventListener("keydown",e=>{
+  if(/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||e.ctrlKey||e.metaKey||e.altKey)return;
+  const k=e.key,ov=$("#ov");
+  if(ov){if(k==="Escape")ov.remove();return}
+  if(k==="f"||k==="F")return toggleFs();
+  if(k==="m"||k==="M"){CFG.mute=!CFG.mute;return render()}
+  if(G.phase==="q"){
+    if(k==="Escape")return closeQ();
+    if(k===" "||k==="Enter"){e.preventDefault();return reveal()}
+    if(G.revealed){if(/^[1-4]$/.test(k)&&+k<=G.teams.length)return award(+k-1);if(k==="n"||k==="N")return award(-1)}
+  }
+});
+render();
+</script>
+</body>
+</html>
